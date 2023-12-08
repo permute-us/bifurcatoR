@@ -53,6 +53,18 @@ est_pow = function(n,alpha,nsim,dist,params,tests,nboot){
                                                 shape = (n1 * params$sp1 + n2 * params$sp2)/n,
                                                 scale = (n1 * params$sc1 + n2 * params$sc2)/n)))
 
+      } else {
+        if(dist == "LNnorm"){
+          n1 = floor(params$p*n)
+          n2 = floor((1-params$p)*n)
+
+          n.dfs = lapply(1:nsim,function(x) c(rlnorm(n1,params$mu1,params$sd1),rlnorm(n2,params$mu2,params$sd2)))
+
+
+          a.dfs = lapply(1:nsim,function(x) c(rlnorm(n,
+                                                    (n1 * params$mu1 + n2 * params$mu2)/n,
+                                                    sqrt(((n1-1)*params$sd1^2 + (n2-1)*params$sd2^2)/(n-2)))))
+        }
      }
     }
   }

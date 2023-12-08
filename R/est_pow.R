@@ -141,7 +141,7 @@ est_pow = function(n,alpha,nsim,dist,params,tests,nboot){
     pwr.df = rbind(pwr.df,data.frame(N = n, Test = "Hall and York Bandwidth test",
                                      power = sum(sapply(n.dfs, function(s)  I(multimode::modetest(s,mod0 = 1,method = "HY",B=nboot)$p.value<alpha)))/nsim,
                                      FP = sum(sapply(a.dfs, function(s)  I(multimode::modetest(s,mod0 = 1,method = "HY",B=nboot)$p.value<alpha)))/nsim))
-
+  }
 
   if("mt" %in% tests){
     pwr.df = rbind(pwr.df,data.frame(N = n, Test = "Bimodality Coefficient",

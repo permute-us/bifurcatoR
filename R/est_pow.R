@@ -58,8 +58,7 @@ est_pow = function(n,alpha,nsim,dist,params,tests,nboot){
           n1 = floor(params$p*n)
           n2 = floor((1-params$p)*n)
 
-          n.dfs = lapply(1:nsim,function(x) c(rlnorm(n1,params$mu1,params$sd1),rlnorm(n2,params$mu2,params$sd2)))
-
+          n.dfs = try( lapply(1:nsim,function(x) c(rlnorm(n1,params$mu1,params$sd1),rlnorm(n2,params$mu2,params$sd2))))
 
           a.dfs = lapply(1:nsim,function(x) c(rlnorm(n,
                                                     (n1 * params$mu1 + n2 * params$mu2)/n,
@@ -105,10 +104,15 @@ est_pow = function(n,alpha,nsim,dist,params,tests,nboot){
                                      FP = sum(sapply(a.dfs, function(s) I(bs_lrt(unlist(s), H0=1, H1=2, family="gamma", nboot=nboot)$pvalue<alpha)),na.rm=TRUE)/nsim ))
   }
 
+  #Adding in a try function as there is a TBD edge case that cause an error in mixR
+  #For now these will be counted as nulls, finding the source of these errors is important
   if("LNmixR" %in% tests){
+    # pwr.df = rbind(pwr.df,data.frame(N = n, Test = "Log normal mixR",
+    #                                  power = sum(sapply(n.dfs, function(s) I(bs_lrt(unlist(s), H0=1, H1=2, family="lnorm", nboot=nboot)$pvalue<alpha)),na.rm=TRUE)/nsim,
+    #                                  FP = sum(sapply(a.dfs, function(s) I(bs_lrt(unlist(s), H0=1, H1=2, family="lnorm", nboot=nboot)$pvalue<alpha)),na.rm=TRUE)/nsim ))
     pwr.df = rbind(pwr.df,data.frame(N = n, Test = "Log normal mixR",
-                                     power = sum(sapply(n.dfs, function(s) I(bs_lrt(unlist(s), H0=1, H1=2, family="lnorm", nboot=nboot)$pvalue<alpha)),na.rm=TRUE)/nsim,
-                                     FP = sum(sapply(a.dfs, function(s) I(bs_lrt(unlist(s), H0=1, H1=2, family="lnorm", nboot=nboot)$pvalue<alpha)),na.rm=TRUE)/nsim ))
+                                     power = sum(sapply(n.dfs, function(s) { p = try(bs_lrt(unlist(s), H0=1, H1=2, family="lnorm", nboot=nboot)) ;ifelse( inherits(p,"try-error"),FALSE, I(p$pvalue < alpha))}),na.rm=TRUE)/nsim,
+                                     FP = sum(sapply(a.dfs, function(s){ p = try(bs_lrt(unlist(s), H0=1, H1=2, family="lnorm", nboot=nboot)) ;ifelse( inherits(p,"try-error"),FALSE, I(p$pvalue < alpha))}),na.rm=TRUE)/nsim ))
   }
 
   #Pulling bootstrapped BC until we establish a cut-off
